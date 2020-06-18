@@ -1,3 +1,3 @@
-include ':layoutmanagerpack'
+include ':layoutmanagerpkg'
 include ':app'
 rootProject.name = "LayoutManagerPkg"

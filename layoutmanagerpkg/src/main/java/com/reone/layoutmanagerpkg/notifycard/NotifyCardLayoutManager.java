@@ -1,4 +1,4 @@
-package com.reone.layoutmanagerpack.notifycard;
+package com.reone.layoutmanagerpkg.notifycard;
 
 
 import android.animation.Animator;

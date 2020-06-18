@@ -7,4 +7,4 @@
  * 4. 功能注释：每一个自定义的LayoutManager要在文件中提供详细注释（详细功能，或使用场景，或模仿对象）
  * 5. 使用注释：如果需要特殊操作需要提供相应注释
  */
-package com.reone.layoutmanagerpack;
+package com.reone.layoutmanagerpkg;
