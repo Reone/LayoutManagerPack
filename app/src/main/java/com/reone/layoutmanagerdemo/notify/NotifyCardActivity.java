@@ -7,9 +7,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.javafaker.Cat;
-import com.github.javafaker.Faker;
 import com.reone.layoutmanagerdemo.R;
+import com.reone.layoutmanagerdemo.bean.ItemBean;
 import com.reone.layoutmanagerdemo.utils.FakerData;
 import com.reone.layoutmanagerdemo.view.BtnGroupView;
 import com.reone.layoutmanagerpkg.notifycard.NotifyCardLayoutManager;
@@ -27,65 +26,80 @@ import butterknife.ButterKnife;
 public class NotifyCardActivity extends AppCompatActivity {
     @BindView(R.id.rv_notify)
     RecyclerView rvNotify;
+    @BindView(R.id.rv_notify2)
+    RecyclerView rvNotify2;
     @BindView(R.id.btn_group_view)
     BtnGroupView btnGroupView;
     private NotifyCardAdapter notifyCardAdapter;
-    private List<NotifyCardAdapter.ItemBean> data;
+    private NotifyCardAdapter2 notifyCardAdapter2;
+    @Nullable
+    private List<ItemBean> data;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notify_card);
         ButterKnife.bind(this);
-        handleData();
         handleClick();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleData();
+    }
+
     private void handleData() {
-        data = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            data.add(createItemBean());
+        if (data == null) {
+            data = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                data.add(FakerData.createItemBean());
+            }
+            notifyCardAdapter = new NotifyCardAdapter(this, data);
+            notifyCardAdapter.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 1 click " + item.getName(), Toast.LENGTH_SHORT).show());
+            rvNotify.setLayoutManager(new NotifyCardLayoutManager()
+                    .maxCount(4)
+                    .needShadow(true)
+                    .padding(100, 100, 10, 10)
+                    .setOnItemRemoveListener(position -> {
+                        data.remove(position);
+                        notifyCardAdapter.notifyItemRemoved(position);
+                        notifyCardAdapter2.notifyItemRemoved(position);
+                    }));
+            rvNotify.setAdapter(notifyCardAdapter);
+            notifyCardAdapter2 = new NotifyCardAdapter2(this, data);
+            notifyCardAdapter2.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 2 click " + item.getName(), Toast.LENGTH_SHORT).show());
+            rvNotify2.setLayoutManager(new NotifyCardLayoutManager()
+                    .maxCount(3)
+                    .needShadow(true)
+                    .padding(100, 100, 10, 10)
+                    .setOnItemRemoveListener(position -> {
+                        data.remove(position);
+                        notifyCardAdapter.notifyItemRemoved(position);
+                        notifyCardAdapter2.notifyItemRemoved(position);
+                    }));
+            rvNotify2.setAdapter(notifyCardAdapter2);
         }
-        notifyCardAdapter = new NotifyCardAdapter(this, data);
-        notifyCardAdapter.setOnItemClickListener((item, position) -> Toast.makeText(this, "click " + item.name, Toast.LENGTH_SHORT).show());
-        rvNotify.setLayoutManager(new NotifyCardLayoutManager()
-                .maxCount(4)
-                .needShadow(true)
-                .padding(100, 100, 10, 10)
-                .setOnItemRemoveListener(position -> {
-                    data.remove(position);
-                    notifyCardAdapter.notifyItemRemoved(position);
-                }));
-        rvNotify.setAdapter(notifyCardAdapter);
     }
 
     private void handleClick() {
         btnGroupView.setOnStrClickListener((view, clickStr) -> {
-            switch (clickStr) {
-                case "add":
-                    data.add(createItemBean());
-                    notifyCardAdapter.notifyItemInserted(data.size() - 1);
-                    break;
-                case "remove":
-                    int lastIndex = data.size() - 1;
-                    data.remove(lastIndex);
-                    notifyCardAdapter.notifyItemRemoved(lastIndex);
-                    break;
+            if (data != null) {
+                switch (clickStr) {
+                    case "add":
+                        data.add(FakerData.createItemBean());
+                        notifyCardAdapter.notifyItemInserted(data.size() - 1);
+                        notifyCardAdapter2.notifyItemInserted(data.size() - 1);
+                        break;
+                    case "remove":
+                        int lastIndex = data.size() - 1;
+                        data.remove(lastIndex);
+                        notifyCardAdapter.notifyItemRemoved(lastIndex);
+                        notifyCardAdapter2.notifyItemRemoved(lastIndex);
+                        break;
+                }
             }
         });
-    }
-
-    private int tempIndex = 0;
-
-    private NotifyCardAdapter.ItemBean createItemBean() {
-        Cat cat = Faker.instance().cat();
-        NotifyCardAdapter.ItemBean itemBean = new NotifyCardAdapter.ItemBean();
-        itemBean.name = cat.name();
-        itemBean.breed = cat.breed();
-        itemBean.registry = cat.registry();
-        itemBean.img = FakerData.headers[tempIndex % FakerData.headers.length];
-        tempIndex++;
-        return itemBean;
     }
 
 }

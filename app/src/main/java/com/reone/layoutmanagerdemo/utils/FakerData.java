@@ -1,7 +1,10 @@
 package com.reone.layoutmanagerdemo.utils;
 
 
+import com.github.javafaker.Cat;
+import com.github.javafaker.Faker;
 import com.reone.layoutmanagerdemo.R;
+import com.reone.layoutmanagerdemo.bean.ItemBean;
 
 /**
  * Created by wangxingsheng on 2020/6/9.
@@ -66,4 +69,19 @@ public class FakerData {
             , R.mipmap.movie_19
             , R.mipmap.movie_20
     };
+
+    private static int tempIndex = 0;
+
+    public static ItemBean createItemBean() {
+        Cat cat = Faker.instance().cat();
+        ItemBean itemBean = new ItemBean();
+        itemBean.setName(cat.name());
+        itemBean.setBreed(cat.breed());
+        itemBean.setRegistry(cat.registry());
+        itemBean.setHeaderIcon(headers[tempIndex % headers.length]);
+        itemBean.setMovie(movies[tempIndex % movies.length]);
+        itemBean.setNoruto(norutos[tempIndex % norutos.length]);
+        tempIndex++;
+        return itemBean;
+    }
 }
