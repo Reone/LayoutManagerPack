@@ -7,4 +7,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <declare-styleable name="BtnGroupView">
+        <attr name="clickArray" format="string" />
+    </declare-styleable>
 </resources>

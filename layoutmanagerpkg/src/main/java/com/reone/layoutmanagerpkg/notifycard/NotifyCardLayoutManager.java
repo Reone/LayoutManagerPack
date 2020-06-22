@@ -217,7 +217,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int left = (int) pointFS[pointIndex].x;
         int top = (int) pointFS[pointIndex].y;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            item.setElevation(pointIndex * 5);
+            item.setElevation(pointIndex * 5 + 5);
         }
         if (pointIndex == pointFS.length - 1) {
             left = left - offsetXofLast;
