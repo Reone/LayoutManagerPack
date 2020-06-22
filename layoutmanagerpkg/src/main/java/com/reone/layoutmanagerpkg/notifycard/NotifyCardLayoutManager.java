@@ -25,6 +25,8 @@ import java.lang.reflect.Field;
  */
 public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     public static final int DEFAULT_MAX_COUNT = 3;
+    public static final int VALUE_ELEVATION = 3;
+    public static final int SHADOW_PADDING = VALUE_ELEVATION * 2;
     private int offsetXofLast = 0;//最有一项、最下方item是可以左右滑动删除的。
     private int maxCount;//最大可显示条数
     private PointF[] pointFS;//itemCount > maxCount时，每一个item应该处于的位置，从上到下的顺序存放至此
@@ -32,6 +34,16 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     private RecyclerView recyclerView;
     @Nullable
     private OnItemRemoveListener onItemRemoveListener = null;
+
+    /**
+     * 是否需要设置高度（会预留阴影距离）
+     */
+    private boolean showShadow = true;
+    //padding
+    private int paddingLeft = 9900;
+    private int paddingRight = 0;
+    private int paddingTop = 0;
+    private int paddingBottom = 0;
 
     public NotifyCardLayoutManager() {
         this(DEFAULT_MAX_COUNT);
@@ -45,6 +57,20 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         if (isDebug()) {
             Log.d("NotifyCardLayoutManager", log);
         }
+    }
+
+    public void setPadding(int paddingLeft, int paddingRight, int paddingTop, int paddingBottom) {
+        this.paddingLeft = paddingLeft;
+        this.paddingRight = paddingRight;
+        this.paddingTop = paddingTop;
+        this.paddingBottom = paddingBottom;
+    }
+
+    /**
+     * 是否需要阴影
+     */
+    public void needShadow(boolean showShadow) {
+        this.showShadow = showShadow;
     }
 
     protected boolean isDebug() {
@@ -216,8 +242,8 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int width = getDecoratedMeasuredWidth(item);
         int left = (int) pointFS[pointIndex].x;
         int top = (int) pointFS[pointIndex].y;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            item.setElevation(pointIndex * 5 + 5);
+        if (showShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            item.setElevation(pointIndex * VALUE_ELEVATION + VALUE_ELEVATION);
         }
         if (pointIndex == pointFS.length - 1) {
             left = left - offsetXofLast;
@@ -229,17 +255,25 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
      * 计算每个item应该处于的位置
      */
     private void calculateChildes(RecyclerView.Recycler recycler) {
+        int shadowPadding = 0;
+        if (showShadow && SHADOW_PADDING * maxCount <= getVerticalSpace() && SHADOW_PADDING * maxCount <= getHorizontalSpace()) {
+            shadowPadding = SHADOW_PADDING;
+        }
+
         pointFS = new PointF[maxCount];
         View child = recycler.getViewForPosition(getItemCount() - 1);
         measureChildWithMargins(child, 0, 0);
         int lastChildHeight = getDecoratedMeasuredHeight(child);
         int lastChildWidth = getDecoratedMeasuredWidth(child);
-        int itemVerticalDistance = (getVerticalSpace() - lastChildHeight) / (maxCount - 1);
-        int itemHorizontalDistance = (getHorizontalSpace() - lastChildWidth) / (maxCount - 1);
+        int itemVerticalDistance = (getVerticalSpace() - shadowPadding * maxCount - lastChildHeight - paddingTop - paddingBottom) / (maxCount - 1);
+        int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * maxCount - paddingLeft - paddingRight - lastChildWidth) / (maxCount - 1);
+        if (itemVerticalDistance < 0 || itemHorizontalDistance < 0) {
+            throw new IllegalArgumentException("'padding' ERROR! Please set padding properly!");
+        }
         for (int i = maxCount - 1; i >= 0; i--) {
             int dx = (maxCount - i - 1) * itemHorizontalDistance;
             int dy = (maxCount - i - 1) * itemVerticalDistance;
-            pointFS[i] = new PointF(getPaddingLeft() + dx, getHeight() - getPaddingBottom() - lastChildHeight - dy);
+            pointFS[i] = new PointF(getPaddingLeft() + dx + shadowPadding * (maxCount - 1) + paddingLeft, getHeight() - getPaddingBottom() - paddingBottom - shadowPadding * (maxCount - 1) - lastChildHeight - dy);
         }
     }
 
