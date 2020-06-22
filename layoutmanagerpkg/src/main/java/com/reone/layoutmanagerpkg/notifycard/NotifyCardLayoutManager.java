@@ -25,7 +25,7 @@ import java.lang.reflect.Field;
  */
 public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     public static final int DEFAULT_MAX_COUNT = 3;
-    public static final int VALUE_ELEVATION = 3;
+    public static final int VALUE_ELEVATION = 1;
     public static final int SHADOW_PADDING = VALUE_ELEVATION * 2;
     private int offsetXofLast = 0;//最有一项、最下方item是可以左右滑动删除的。
     private int maxCount;//最大可显示条数
@@ -59,18 +59,25 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         }
     }
 
-    public void setPadding(int paddingLeft, int paddingRight, int paddingTop, int paddingBottom) {
+    public NotifyCardLayoutManager maxCount(int maxCount) {
+        this.maxCount = maxCount;
+        return this;
+    }
+
+    public NotifyCardLayoutManager padding(int paddingLeft, int paddingRight, int paddingTop, int paddingBottom) {
         this.paddingLeft = paddingLeft;
         this.paddingRight = paddingRight;
         this.paddingTop = paddingTop;
         this.paddingBottom = paddingBottom;
+        return this;
     }
 
     /**
      * 是否需要阴影
      */
-    public void needShadow(boolean showShadow) {
+    public NotifyCardLayoutManager needShadow(boolean showShadow) {
         this.showShadow = showShadow;
+        return this;
     }
 
     protected boolean isDebug() {
@@ -267,9 +274,6 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int lastChildWidth = getDecoratedMeasuredWidth(child);
         int itemVerticalDistance = (getVerticalSpace() - shadowPadding * maxCount - lastChildHeight - paddingTop - paddingBottom) / (maxCount - 1);
         int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * maxCount - paddingLeft - paddingRight - lastChildWidth) / (maxCount - 1);
-        if (itemVerticalDistance < 0 || itemHorizontalDistance < 0) {
-            throw new IllegalArgumentException("'padding' ERROR! Please set padding properly!");
-        }
         for (int i = maxCount - 1; i >= 0; i--) {
             int dx = (maxCount - i - 1) * itemHorizontalDistance;
             int dy = (maxCount - i - 1) * itemVerticalDistance;
@@ -288,19 +292,20 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     /**
      * 获取RecyclerView的显示高度
      */
-    public int getVerticalSpace() {
+    private int getVerticalSpace() {
         return getHeight() - getPaddingTop() - getPaddingBottom();
     }
 
     /**
      * 获取RecyclerView的显示宽度
      */
-    public int getHorizontalSpace() {
+    private int getHorizontalSpace() {
         return getWidth() - getPaddingLeft() - getPaddingRight();
     }
 
-    public void setOnItemRemoveListener(@NonNull OnItemRemoveListener onItemRemoveListener) {
+    public NotifyCardLayoutManager setOnItemRemoveListener(@NonNull OnItemRemoveListener onItemRemoveListener) {
         this.onItemRemoveListener = onItemRemoveListener;
+        return this;
     }
 
     public interface OnItemRemoveListener {

@@ -66,12 +66,7 @@ public class DemoListActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull final DemoListViewHolder holder, int position) {
             final DemoItem item = demoList[holder.getAdapterPosition()];
             holder.textView.setText(item.title);
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(DemoListActivity.this, item.activityClass));
-                }
-            });
+            holder.itemView.setOnClickListener(v -> startActivity(new Intent(DemoListActivity.this, item.activityClass)));
         }
 
         @Override

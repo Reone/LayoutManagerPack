@@ -25,12 +25,11 @@ import butterknife.ButterKnife;
  * desc:
  */
 public class NotifyCardActivity extends AppCompatActivity {
-    @BindView(R.id.recycler_view)
-    RecyclerView recyclerView;
+    @BindView(R.id.rv_notify)
+    RecyclerView rvNotify;
     @BindView(R.id.btn_group_view)
     BtnGroupView btnGroupView;
     private NotifyCardAdapter notifyCardAdapter;
-    private NotifyCardLayoutManager notifyCardLayoutManager;
     private List<NotifyCardAdapter.ItemBean> data;
 
     @Override
@@ -44,15 +43,20 @@ public class NotifyCardActivity extends AppCompatActivity {
 
     private void handleData() {
         data = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            data.add(createItemBean());
+        }
         notifyCardAdapter = new NotifyCardAdapter(this, data);
         notifyCardAdapter.setOnItemClickListener((item, position) -> Toast.makeText(this, "click " + item.name, Toast.LENGTH_SHORT).show());
-        notifyCardLayoutManager = new NotifyCardLayoutManager(6);
-        notifyCardLayoutManager.setOnItemRemoveListener(position -> {
-            data.remove(position);
-            notifyCardAdapter.notifyItemRemoved(position);
-        });
-        recyclerView.setLayoutManager(notifyCardLayoutManager);
-        recyclerView.setAdapter(notifyCardAdapter);
+        rvNotify.setLayoutManager(new NotifyCardLayoutManager()
+                .maxCount(4)
+                .needShadow(true)
+                .padding(100, 100, 10, 10)
+                .setOnItemRemoveListener(position -> {
+                    data.remove(position);
+                    notifyCardAdapter.notifyItemRemoved(position);
+                }));
+        rvNotify.setAdapter(notifyCardAdapter);
     }
 
     private void handleClick() {
