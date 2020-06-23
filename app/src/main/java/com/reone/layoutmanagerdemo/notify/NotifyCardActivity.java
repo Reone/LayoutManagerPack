@@ -57,27 +57,28 @@ public class NotifyCardActivity extends AppCompatActivity {
             }
             notifyCardAdapter = new NotifyCardAdapter(this, data);
             notifyCardAdapter.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 1 click " + item.getName(), Toast.LENGTH_SHORT).show());
-            rvNotify.setLayoutManager(new NotifyCardLayoutManager()
+            rvNotify.setLayoutManager(new NotifyCardLayoutManager.Builder()
                     .maxCount(4)
-                    .needShadow(true)
-                    .padding(100, 100, 10, 10)
-                    .setOnItemRemoveListener(position -> {
+                    .showShadow(true)
+                    .elevation(1)
+                    .padding(100, 10, 100, 10)
+                    .onItemRemoveListener(position -> {
                         data.remove(position);
                         notifyCardAdapter.notifyItemRemoved(position);
                         notifyCardAdapter2.notifyItemRemoved(position);
-                    }));
+                    }).create());
             rvNotify.setAdapter(notifyCardAdapter);
             notifyCardAdapter2 = new NotifyCardAdapter2(this, data);
             notifyCardAdapter2.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 2 click " + item.getName(), Toast.LENGTH_SHORT).show());
-            rvNotify2.setLayoutManager(new NotifyCardLayoutManager()
+            rvNotify2.setLayoutManager(new NotifyCardLayoutManager.Builder()
                     .maxCount(3)
-                    .needShadow(true)
-                    .padding(100, 100, 10, 10)
-                    .setOnItemRemoveListener(position -> {
+                    .elevation(5)
+                    .padding(100, 10, 100, 10)
+                    .onItemRemoveListener(position -> {
                         data.remove(position);
                         notifyCardAdapter.notifyItemRemoved(position);
                         notifyCardAdapter2.notifyItemRemoved(position);
-                    }));
+                    }).create());
             rvNotify2.setAdapter(notifyCardAdapter2);
         }
     }

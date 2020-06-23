@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,64 +23,20 @@ import java.lang.reflect.Field;
  * desc:卡片通知
  */
 public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
-    public static final int DEFAULT_MAX_COUNT = 3;
-    public static final int VALUE_ELEVATION = 1;
-    public static final int SHADOW_PADDING = VALUE_ELEVATION * 2;
-    private int offsetXofLast = 0;//最有一项、最下方item是可以左右滑动删除的。
-    private int maxCount;//最大可显示条数
+    private int offsetXofLast = 0;//最后一项、最下方item是可以左右滑动删除的。
     private PointF[] pointFS;//itemCount > maxCount时，每一个item应该处于的位置，从上到下的顺序存放至此
     private ValueAnimator lastItemMoveAnimator;
     private RecyclerView recyclerView;
-    @Nullable
-    private OnItemRemoveListener onItemRemoveListener = null;
+    private LayoutParams lp;//构建参数
 
-    /**
-     * 是否需要设置高度（会预留阴影距离）
-     */
-    private boolean showShadow = true;
-    //padding
-    private int paddingLeft = 9900;
-    private int paddingRight = 0;
-    private int paddingTop = 0;
-    private int paddingBottom = 0;
-
-    public NotifyCardLayoutManager() {
-        this(DEFAULT_MAX_COUNT);
-    }
-
-    public NotifyCardLayoutManager(int maxCount) {
-        this.maxCount = maxCount;
+    private NotifyCardLayoutManager(LayoutParams lp) {
+        this.lp = lp;
     }
 
     private void LOG(String log) {
-        if (isDebug()) {
+        if (lp.debug) {
             Log.d("NotifyCardLayoutManager", log);
         }
-    }
-
-    public NotifyCardLayoutManager maxCount(int maxCount) {
-        this.maxCount = maxCount;
-        return this;
-    }
-
-    public NotifyCardLayoutManager padding(int paddingLeft, int paddingRight, int paddingTop, int paddingBottom) {
-        this.paddingLeft = paddingLeft;
-        this.paddingRight = paddingRight;
-        this.paddingTop = paddingTop;
-        this.paddingBottom = paddingBottom;
-        return this;
-    }
-
-    /**
-     * 是否需要阴影
-     */
-    public NotifyCardLayoutManager needShadow(boolean showShadow) {
-        this.showShadow = showShadow;
-        return this;
-    }
-
-    protected boolean isDebug() {
-        return false;
     }
 
     @Override
@@ -107,7 +62,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
         LOG("onLayoutChildren -> " + state);
-        if (state.getItemCount() <= 0 || maxCount <= 0) {
+        if (state.getItemCount() <= 0 || lp.maxCount <= 0) {
             removeAndRecycleAllViews(recycler);
             return;
         }
@@ -132,8 +87,8 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
                 if (recyclerView != null) {
                     recyclerView.post(() -> {
                         recyclerView.stopScroll();//这个方法在RecycleView计算布局的过程中不能调用
-                        if (onItemRemoveListener != null && getItemCount() > 0) {
-                            onItemRemoveListener.onItemRemove(getItemCount() - 1);
+                        if (lp.onItemRemoveListener != null && getItemCount() > 0) {
+                            lp.onItemRemoveListener.onItemRemove(getItemCount() - 1);
                             requestLayout();
                         }
                     });
@@ -199,8 +154,8 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
             lastItemMoveAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    if (onItemRemoveListener != null && getItemCount() > 0) {
-                        onItemRemoveListener.onItemRemove(getItemCount() - 1);
+                    if (lp.onItemRemoveListener != null && getItemCount() > 0) {
+                        lp.onItemRemoveListener.onItemRemove(getItemCount() - 1);
                     }
                 }
             });
@@ -225,7 +180,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
             return;
         }
         detachAndScrapAttachedViews(recycler);
-        int needLayoutCount = Math.min(getItemCount(), maxCount);
+        int needLayoutCount = Math.min(getItemCount(), lp.maxCount);
         int firstIndex = pointFS.length - needLayoutCount;
         int lastIndex = pointFS.length - 1;
 
@@ -249,8 +204,8 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int width = getDecoratedMeasuredWidth(item);
         int left = (int) pointFS[pointIndex].x;
         int top = (int) pointFS[pointIndex].y;
-        if (showShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            item.setElevation(pointIndex * VALUE_ELEVATION + VALUE_ELEVATION);
+        if (lp.showShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            item.setElevation(pointIndex * lp.elevation + lp.elevation);
         }
         if (pointIndex == pointFS.length - 1) {
             left = left - offsetXofLast;
@@ -263,21 +218,21 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
      */
     private void calculateChildes(RecyclerView.Recycler recycler) {
         int shadowPadding = 0;
-        if (showShadow && SHADOW_PADDING * maxCount <= getVerticalSpace() && SHADOW_PADDING * maxCount <= getHorizontalSpace()) {
-            shadowPadding = SHADOW_PADDING;
+        if (lp.showShadow && lp.shadowPadding * lp.maxCount <= getVerticalSpace() && lp.shadowPadding * lp.maxCount <= getHorizontalSpace()) {
+            shadowPadding = lp.shadowPadding;
         }
 
-        pointFS = new PointF[maxCount];
+        pointFS = new PointF[lp.maxCount];
         View child = recycler.getViewForPosition(getItemCount() - 1);
         measureChildWithMargins(child, 0, 0);
         int lastChildHeight = getDecoratedMeasuredHeight(child);
         int lastChildWidth = getDecoratedMeasuredWidth(child);
-        int itemVerticalDistance = (getVerticalSpace() - shadowPadding * maxCount - lastChildHeight - paddingTop - paddingBottom) / (maxCount - 1);
-        int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * maxCount - paddingLeft - paddingRight - lastChildWidth) / (maxCount - 1);
-        for (int i = maxCount - 1; i >= 0; i--) {
-            int dx = (maxCount - i - 1) * itemHorizontalDistance;
-            int dy = (maxCount - i - 1) * itemVerticalDistance;
-            pointFS[i] = new PointF(getPaddingLeft() + dx + shadowPadding * (maxCount - 1) + paddingLeft, getHeight() - getPaddingBottom() - paddingBottom - shadowPadding * (maxCount - 1) - lastChildHeight - dy);
+        int itemVerticalDistance = (getVerticalSpace() - shadowPadding * lp.maxCount - lastChildHeight - lp.paddingTop - lp.paddingBottom) / (lp.maxCount - 1);
+        int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * lp.maxCount - lp.paddingLeft - lp.paddingRight - lastChildWidth) / (lp.maxCount - 1);
+        for (int i = lp.maxCount - 1; i >= 0; i--) {
+            int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
+            int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
+            pointFS[i] = new PointF(getPaddingLeft() + dx + shadowPadding * (lp.maxCount - 1) + lp.paddingLeft, getHeight() - getPaddingBottom() - lp.paddingBottom - shadowPadding * (lp.maxCount - 1) - lastChildHeight - dy);
         }
     }
 
@@ -303,11 +258,6 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         return getWidth() - getPaddingLeft() - getPaddingRight();
     }
 
-    public NotifyCardLayoutManager setOnItemRemoveListener(@NonNull OnItemRemoveListener onItemRemoveListener) {
-        this.onItemRemoveListener = onItemRemoveListener;
-        return this;
-    }
-
     public interface OnItemRemoveListener {
         void onItemRemove(int position);
     }
@@ -317,6 +267,86 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         public long getRemoveDuration() {
             //不需要remove的效果，但是要不影响其他动画的进行
             return 0;
+        }
+    }
+
+    static class LayoutParams {
+        static final int DEFAULT_MAX_COUNT = 3;
+        static final int DEFAULT_ELEVATION = 3;
+        static final int DEFAULT_SHADOW_PADDING = DEFAULT_ELEVATION * 2;
+        //padding
+        int paddingLeft = 0;
+        int paddingRight = 0;
+        int paddingTop = 0;
+        int paddingBottom = 0;
+        boolean showShadow = true;//是否需要设置高度（会预留阴影距离）
+        @Nullable
+        OnItemRemoveListener onItemRemoveListener = null;
+        int maxCount = DEFAULT_MAX_COUNT;//最大可显示条数
+        int elevation = DEFAULT_ELEVATION;//高度间隔，每个item之间相差高度
+        int shadowPadding = DEFAULT_SHADOW_PADDING;//给高度所带来的的阴影保留显示空间
+        boolean debug;
+    }
+
+    public static class Builder {
+        private LayoutParams layoutParams;
+
+        public Builder() {
+            layoutParams = new LayoutParams();
+        }
+
+        public Builder paddingLeft(int paddingLeft) {
+            layoutParams.paddingLeft = paddingLeft;
+            return this;
+        }
+
+        public Builder paddingRight(int paddingRight) {
+            layoutParams.paddingRight = paddingRight;
+            return this;
+        }
+
+        public Builder paddingTop(int paddingTop) {
+            layoutParams.paddingTop = paddingTop;
+            return this;
+        }
+
+        public Builder paddingBottom(int paddingBottom) {
+            layoutParams.paddingBottom = paddingBottom;
+            return this;
+        }
+
+        public Builder padding(int left, int top, int right, int bottom) {
+            return this.paddingLeft(left).paddingTop(top).paddingRight(right).paddingBottom(bottom);
+        }
+
+        public Builder showShadow(boolean showShadow) {
+            layoutParams.showShadow = showShadow;
+            return this;
+        }
+
+        public Builder onItemRemoveListener(@Nullable OnItemRemoveListener onItemRemoveListener) {
+            layoutParams.onItemRemoveListener = onItemRemoveListener;
+            return this;
+        }
+
+        public Builder maxCount(int maxCount) {
+            layoutParams.maxCount = maxCount;
+            return this;
+        }
+
+        public Builder elevation(int elevation) {
+            layoutParams.elevation = elevation;
+            layoutParams.shadowPadding = elevation * 2;
+            return this;
+        }
+
+        public Builder debug(boolean debug) {
+            layoutParams.debug = debug;
+            return this;
+        }
+
+        public NotifyCardLayoutManager create() {
+            return new NotifyCardLayoutManager(layoutParams);
         }
     }
 }
