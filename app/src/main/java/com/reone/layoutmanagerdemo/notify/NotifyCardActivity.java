@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.reone.layoutmanagerdemo.R;
 import com.reone.layoutmanagerdemo.bean.ItemBean;
 import com.reone.layoutmanagerdemo.utils.FakerData;
+import com.reone.layoutmanagerdemo.utils.ToastUtils;
 import com.reone.layoutmanagerdemo.view.BtnGroupView;
 import com.reone.layoutmanagerpkg.notifycard.NotifyCardLayoutManager;
 
@@ -56,7 +57,9 @@ public class NotifyCardActivity extends AppCompatActivity {
                 data.add(FakerData.createItemBean());
             }
             notifyCardAdapter = new NotifyCardAdapter(this, data);
-            notifyCardAdapter.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 1 click " + item.getName(), Toast.LENGTH_SHORT).show());
+            notifyCardAdapter.setOnItemClickListener((item, position) -> {
+                ToastUtils.showShort("notify 1 click " + item.getName(), Toast.LENGTH_SHORT);
+            });
             rvNotify.setLayoutManager(new NotifyCardLayoutManager.Builder()
                     .maxCount(4)
                     .showShadow(true)
@@ -69,7 +72,7 @@ public class NotifyCardActivity extends AppCompatActivity {
                     }).create());
             rvNotify.setAdapter(notifyCardAdapter);
             notifyCardAdapter2 = new NotifyCardAdapter2(this, data);
-            notifyCardAdapter2.setOnItemClickListener((item, position) -> Toast.makeText(this, "notify 2 click " + item.getName(), Toast.LENGTH_SHORT).show());
+            notifyCardAdapter2.setOnItemClickListener((item, position) -> ToastUtils.showShort("notify 2 click " + item.getName()));
             rvNotify2.setLayoutManager(new NotifyCardLayoutManager.Builder()
                     .maxCount(3)
                     .elevation(5)
