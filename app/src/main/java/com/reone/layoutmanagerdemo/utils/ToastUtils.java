@@ -655,7 +655,6 @@ public final class ToastUtils {
     static class ActivityLifecycleImpl implements Application.ActivityLifecycleCallbacks {
 
         final LinkedList<Activity> mActivityList = new LinkedList<>();
-        final Map<Object, OnAppStatusChangedListener> mStatusListenerMap = new ConcurrentHashMap<>();
 
         final Map<Activity, Set<OnActivityDestroyedListener>> mDestroyedListenerMap = new ConcurrentHashMap<>();
 
@@ -685,7 +684,6 @@ public final class ToastUtils {
             setTopActivity(activity);
             if (mIsBackground) {
                 mIsBackground = false;
-                postStatus(true);
             }
         }
 
@@ -702,7 +700,6 @@ public final class ToastUtils {
                 --mForegroundCount;
                 if (mForegroundCount <= 0) {
                     mIsBackground = true;
-                    postStatus(false);
                 }
             }
         }
@@ -741,20 +738,6 @@ public final class ToastUtils {
             }
         }
 
-        void addOnAppStatusChangedListener(final Object object,
-                                           final OnAppStatusChangedListener listener) {
-            mStatusListenerMap.put(object, listener);
-        }
-
-        void removeOnAppStatusChangedListener(final Object object) {
-            mStatusListenerMap.remove(object);
-        }
-
-        void removeOnActivityDestroyedListener(final Activity activity) {
-            if (activity == null) return;
-            mDestroyedListenerMap.remove(activity);
-        }
-
         void addOnActivityDestroyedListener(final Activity activity,
                                             final OnActivityDestroyedListener listener) {
             if (activity == null || listener == null) return;
@@ -767,18 +750,6 @@ public final class ToastUtils {
                 if (listeners.contains(listener)) return;
             }
             listeners.add(listener);
-        }
-
-        private void postStatus(final boolean isForeground) {
-            if (mStatusListenerMap.isEmpty()) return;
-            for (OnAppStatusChangedListener onAppStatusChangedListener : mStatusListenerMap.values()) {
-                if (onAppStatusChangedListener == null) return;
-                if (isForeground) {
-                    onAppStatusChangedListener.onForeground();
-                } else {
-                    onAppStatusChangedListener.onBackground();
-                }
-            }
         }
 
         private void consumeOnActivityDestroyedListener(Activity activity) {
