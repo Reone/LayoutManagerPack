@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +22,8 @@ import java.lang.reflect.Field;
 /**
  * Created by wangxingsheng on 2020/6/9.
  * desc:卡片通知
+ * todo 支持角度配置
+ * todo item消失动画完善
  */
 public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     private int offsetXofLast = 0;//最后一项、最下方item是可以左右滑动删除的。
@@ -204,7 +207,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int width = getDecoratedMeasuredWidth(item);
         int left = (int) pointFS[pointIndex].x;
         int top = (int) pointFS[pointIndex].y;
-        if (lp.showShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (lp.showShadow && Build.VERSION.SDK_INT >= 21) {
             item.setElevation(pointIndex * lp.elevation + lp.elevation);
         }
         if (pointIndex == pointFS.length - 1) {
@@ -229,13 +232,15 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int lastChildWidth = getDecoratedMeasuredWidth(child);
         int itemVerticalDistance = (getVerticalSpace() - shadowPadding * lp.maxCount - lastChildHeight - lp.paddingTop - lp.paddingBottom) / (lp.maxCount - 1);
         int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * lp.maxCount - lp.paddingLeft - lp.paddingRight - lastChildWidth) / (lp.maxCount - 1);
+        int leftX = getPaddingLeft() + shadowPadding * (lp.maxCount - 1) + lp.paddingLeft;
+        int bottomY = getHeight() - getPaddingBottom() - lp.paddingBottom - shadowPadding * (lp.maxCount - 1);
         for (int i = lp.maxCount - 1; i >= 0; i--) {
             int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
             int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
-            pointFS[i] = new PointF(getPaddingLeft() + dx + shadowPadding * (lp.maxCount - 1) + lp.paddingLeft, getHeight() - getPaddingBottom() - lp.paddingBottom - shadowPadding * (lp.maxCount - 1) - lastChildHeight - dy);
+            pointFS[i] = new PointF(leftX + dx, bottomY - lastChildHeight - dy);
         }
     }
-
+    
     /**
      * 可以横移，因为底部是可以横滑删除的
      */
@@ -270,10 +275,11 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         }
     }
 
-    static class LayoutParams {
+    public static class LayoutParams {
         static final int DEFAULT_MAX_COUNT = 3;
         static final int DEFAULT_ELEVATION = 3;
         static final int DEFAULT_SHADOW_PADDING = DEFAULT_ELEVATION * 2;
+        static final int DEFAULT_ANGLE = Direction.LAYOUT_DIRECTION_TOP_RIGHT;
         //padding
         int paddingLeft = 0;
         int paddingRight = 0;
@@ -285,7 +291,30 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int maxCount = DEFAULT_MAX_COUNT;//最大可显示条数
         int elevation = DEFAULT_ELEVATION;//高度间隔，每个item之间相差高度
         int shadowPadding = DEFAULT_SHADOW_PADDING;//给高度所带来的的阴影保留显示空间
+        @Direction
+        int direction = DEFAULT_ANGLE;//角度，布局方向，起始item在最定层
         boolean debug;
+    }
+
+    @IntDef({
+            Direction.LAYOUT_DIRECTION_RIGHT,
+            Direction.LAYOUT_DIRECTION_TOP_RIGHT,
+            Direction.LAYOUT_DIRECTION_UP,
+            Direction.LAYOUT_DIRECTION_TOP_LEFT,
+            Direction.LAYOUT_DIRECTION_LEFT,
+            Direction.LAYOUT_DIRECTION_DOWN_LEFT,
+            Direction.LAYOUT_DIRECTION_DOWN,
+            Direction.LAYOUT_DIRECTION_DOWN_RIGHT,
+    })
+    public @interface Direction {
+        int LAYOUT_DIRECTION_RIGHT = 0;
+        int LAYOUT_DIRECTION_TOP_RIGHT = 45;
+        int LAYOUT_DIRECTION_UP = 90;
+        int LAYOUT_DIRECTION_TOP_LEFT = 135;
+        int LAYOUT_DIRECTION_LEFT = 180;
+        int LAYOUT_DIRECTION_DOWN_LEFT = 225;
+        int LAYOUT_DIRECTION_DOWN = 270;
+        int LAYOUT_DIRECTION_DOWN_RIGHT = 315;
     }
 
     public static class Builder {
@@ -331,6 +360,11 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
 
         public Builder maxCount(int maxCount) {
             layoutParams.maxCount = maxCount;
+            return this;
+        }
+
+        public Builder direction(@Direction int direction) {
+            layoutParams.direction = direction;
             return this;
         }
 

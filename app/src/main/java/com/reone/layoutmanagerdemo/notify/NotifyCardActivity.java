@@ -76,6 +76,8 @@ public class NotifyCardActivity extends AppCompatActivity {
             rvNotify2.setLayoutManager(new NotifyCardLayoutManager.Builder()
                     .maxCount(3)
                     .elevation(5)
+                    .debug(true)
+                    .direction(NotifyCardLayoutManager.Direction.LAYOUT_DIRECTION_DOWN_RIGHT)
                     .padding(100, 10, 100, 10)
                     .onItemRemoveListener(position -> {
                         data.remove(position);
