@@ -31,8 +31,8 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     private RecyclerView recyclerView;
     private LayoutParams lp;//构建参数
 
-    private NotifyCardLayoutManager(LayoutParams lp) {
-        this.lp = lp;
+    public NotifyCardLayoutManager() {
+        lp = new LayoutParams();
     }
 
     private void LOG(String log) {
@@ -305,8 +305,87 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         return getWidth() - getPaddingLeft() - getPaddingRight();
     }
 
+    public void setPaddingLeft(int paddingLeft) {
+        lp.paddingLeft = paddingLeft;
+        requestLayout();
+    }
+
+    public void setPaddingRight(int paddingRight) {
+        lp.paddingRight = paddingRight;
+        requestLayout();
+    }
+
+    public void setPaddingTop(int paddingTop) {
+        lp.paddingTop = paddingTop;
+        requestLayout();
+    }
+
+    public void setPaddingBottom(int paddingBottom) {
+        lp.paddingBottom = paddingBottom;
+        requestLayout();
+    }
+
+    public void setPadding(int left, int top, int right, int bottom) {
+        lp.paddingLeft = left;
+        lp.paddingRight = right;
+        lp.paddingTop = top;
+        lp.paddingBottom = bottom;
+        requestLayout();
+    }
+
+    public void setShowShadow(boolean showShadow) {
+        lp.showShadow = showShadow;
+        requestLayout();
+    }
+
+    public void onItemRemoveListener(@Nullable OnItemRemoveListener onItemRemoveListener) {
+        lp.onItemRemoveListener = onItemRemoveListener;
+    }
+
+    public void setMaxCount(int maxCount) {
+        lp.maxCount = maxCount;
+        requestLayout();
+    }
+
+    public void setDirection(@Direction int direction) {
+        lp.direction = direction;
+        requestLayout();
+    }
+
+    public void setElevation(int elevation) {
+        lp.elevation = elevation;
+        lp.shadowPadding = elevation * 2;
+        requestLayout();
+    }
+
+    public void setDebug(boolean debug) {
+        lp.debug = debug;
+    }
+
     public interface OnItemRemoveListener {
         void onItemRemove(int position);
+    }
+
+    @IntDef({
+            Direction.RIGHT,
+            Direction.UP_RIGHT,
+            Direction.UP,
+            Direction.UP_LEFT,
+            Direction.LEFT,
+            Direction.DOWN_LEFT,
+            Direction.DOWN,
+            Direction.DOWN_RIGHT,
+    })
+    public @interface Direction {
+        int UP = 1;
+        int DOWN = 1 << 1;
+        int LEFT = 1 << 2;
+        int RIGHT = 1 << 3;
+
+        int UP_RIGHT = UP | RIGHT;
+        int UP_LEFT = UP | LEFT;
+        int DOWN_LEFT = DOWN | LEFT;
+        int DOWN_RIGHT = DOWN | RIGHT;
     }
 
     private static class NotifyDefaultItemAnimator extends DefaultItemAnimator {
@@ -336,94 +415,5 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         @Direction
         int direction = DEFAULT_ANGLE;//角度，布局方向，起始item在最定层
         boolean debug;
-    }
-
-    @IntDef({
-            Direction.RIGHT,
-            Direction.UP_RIGHT,
-            Direction.UP,
-            Direction.UP_LEFT,
-            Direction.LEFT,
-            Direction.DOWN_LEFT,
-            Direction.DOWN,
-            Direction.DOWN_RIGHT,
-    })
-    public @interface Direction {
-        int UP = 1;
-        int DOWN = 1 << 1;
-        int LEFT = 1 << 2;
-        int RIGHT = 1 << 3;
-
-        int UP_RIGHT = UP | RIGHT;
-        int UP_LEFT = UP | LEFT;
-        int DOWN_LEFT = DOWN | LEFT;
-        int DOWN_RIGHT = DOWN | RIGHT;
-    }
-
-    public static class Builder {
-        private LayoutParams layoutParams;
-
-        public Builder() {
-            layoutParams = new LayoutParams();
-        }
-
-        public Builder paddingLeft(int paddingLeft) {
-            layoutParams.paddingLeft = paddingLeft;
-            return this;
-        }
-
-        public Builder paddingRight(int paddingRight) {
-            layoutParams.paddingRight = paddingRight;
-            return this;
-        }
-
-        public Builder paddingTop(int paddingTop) {
-            layoutParams.paddingTop = paddingTop;
-            return this;
-        }
-
-        public Builder paddingBottom(int paddingBottom) {
-            layoutParams.paddingBottom = paddingBottom;
-            return this;
-        }
-
-        public Builder padding(int left, int top, int right, int bottom) {
-            return this.paddingLeft(left).paddingTop(top).paddingRight(right).paddingBottom(bottom);
-        }
-
-        public Builder showShadow(boolean showShadow) {
-            layoutParams.showShadow = showShadow;
-            return this;
-        }
-
-        public Builder onItemRemoveListener(@Nullable OnItemRemoveListener onItemRemoveListener) {
-            layoutParams.onItemRemoveListener = onItemRemoveListener;
-            return this;
-        }
-
-        public Builder maxCount(int maxCount) {
-            layoutParams.maxCount = maxCount;
-            return this;
-        }
-
-        public Builder direction(@Direction int direction) {
-            layoutParams.direction = direction;
-            return this;
-        }
-
-        public Builder elevation(int elevation) {
-            layoutParams.elevation = elevation;
-            layoutParams.shadowPadding = elevation * 2;
-            return this;
-        }
-
-        public Builder debug(boolean debug) {
-            layoutParams.debug = debug;
-            return this;
-        }
-
-        public NotifyCardLayoutManager create() {
-            return new NotifyCardLayoutManager(layoutParams);
-        }
     }
 }

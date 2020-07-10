@@ -32,9 +32,23 @@ public class NotifyCardActivity extends AppCompatActivity {
     @BindView(R.id.btn_group_view)
     BtnGroupView btnGroupView;
     private NotifyCardAdapter notifyCardAdapter;
+    private NotifyCardLayoutManager notifyCardLayoutManager1;
+    private NotifyCardLayoutManager notifyCardLayoutManager2;
     private NotifyCardAdapter2 notifyCardAdapter2;
     @Nullable
     private List<ItemBean> data;
+
+    int directionIndex = 0;
+    private int[] direction = {
+            NotifyCardLayoutManager.Direction.UP,
+            NotifyCardLayoutManager.Direction.UP_RIGHT,
+            NotifyCardLayoutManager.Direction.RIGHT,
+            NotifyCardLayoutManager.Direction.DOWN_RIGHT,
+            NotifyCardLayoutManager.Direction.DOWN,
+            NotifyCardLayoutManager.Direction.DOWN_LEFT,
+            NotifyCardLayoutManager.Direction.LEFT,
+            NotifyCardLayoutManager.Direction.UP_LEFT,
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,32 +74,37 @@ public class NotifyCardActivity extends AppCompatActivity {
             notifyCardAdapter.setOnItemClickListener((item, position) -> {
                 ToastUtils.showShort("notify 1 click " + item.getName(), Toast.LENGTH_SHORT);
             });
-            rvNotify.setLayoutManager(new NotifyCardLayoutManager.Builder()
-                    .maxCount(4)
-                    .showShadow(true)
-                    .elevation(1)
-                    .padding(100, 10, 100, 10)
-                    .onItemRemoveListener(position -> {
-                        data.remove(position);
-                        notifyCardAdapter.notifyItemRemoved(position);
-                        notifyCardAdapter2.notifyItemRemoved(position);
-                    }).create());
+            initManager();
+            rvNotify.setLayoutManager(notifyCardLayoutManager1);
             rvNotify.setAdapter(notifyCardAdapter);
             notifyCardAdapter2 = new NotifyCardAdapter2(this, data);
             notifyCardAdapter2.setOnItemClickListener((item, position) -> ToastUtils.showShort("notify 2 click " + item.getName()));
-            rvNotify2.setLayoutManager(new NotifyCardLayoutManager.Builder()
-                    .maxCount(3)
-                    .elevation(5)
-                    .debug(true)
-                    .direction(NotifyCardLayoutManager.Direction.UP_RIGHT)
-                    .padding(100, 10, 100, 10)
-                    .onItemRemoveListener(position -> {
-                        data.remove(position);
-                        notifyCardAdapter.notifyItemRemoved(position);
-                        notifyCardAdapter2.notifyItemRemoved(position);
-                    }).create());
+            rvNotify2.setLayoutManager(notifyCardLayoutManager2);
             rvNotify2.setAdapter(notifyCardAdapter2);
         }
+    }
+
+    private void initManager() {
+        NotifyCardLayoutManager.OnItemRemoveListener onItemRemoveListener = position -> {
+            if (data != null) {
+                data.remove(position);
+                notifyCardAdapter.notifyItemRemoved(position);
+                notifyCardAdapter2.notifyItemRemoved(position);
+            }
+        };
+        notifyCardLayoutManager1 = new NotifyCardLayoutManager();
+        notifyCardLayoutManager1.setMaxCount(4);
+        notifyCardLayoutManager1.setShowShadow(true);
+        notifyCardLayoutManager1.setElevation(1);
+        notifyCardLayoutManager1.setPadding(100, 10, 100, 10);
+        notifyCardLayoutManager1.onItemRemoveListener(onItemRemoveListener);
+
+        notifyCardLayoutManager2 = new NotifyCardLayoutManager();
+        notifyCardLayoutManager2.setMaxCount(3);
+        notifyCardLayoutManager2.setElevation(5);
+        notifyCardLayoutManager2.setDebug(true);
+        notifyCardLayoutManager2.setDirection(direction[directionIndex]);
+        notifyCardLayoutManager2.onItemRemoveListener(onItemRemoveListener);
     }
 
     private void handleClick() {
@@ -103,6 +122,8 @@ public class NotifyCardActivity extends AppCompatActivity {
                         notifyCardAdapter.notifyItemRemoved(lastIndex);
                         notifyCardAdapter2.notifyItemRemoved(lastIndex);
                         break;
+                    case "turn direction":
+                        notifyCardLayoutManager2.setDirection(direction[directionIndex++ % direction.length]);
                 }
             }
         });
