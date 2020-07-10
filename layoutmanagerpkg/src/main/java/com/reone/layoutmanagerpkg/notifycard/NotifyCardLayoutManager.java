@@ -22,7 +22,6 @@ import java.lang.reflect.Field;
 /**
  * Created by wangxingsheng on 2020/6/9.
  * desc:卡片通知
- * todo 支持角度配置
  * todo item消失动画完善
  */
 public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
@@ -220,27 +219,70 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
      * 计算每个item应该处于的位置
      */
     private void calculateChildes(RecyclerView.Recycler recycler) {
-        int shadowPadding = 0;
-        if (lp.showShadow && lp.shadowPadding * lp.maxCount <= getVerticalSpace() && lp.shadowPadding * lp.maxCount <= getHorizontalSpace()) {
-            shadowPadding = lp.shadowPadding;
-        }
-
         pointFS = new PointF[lp.maxCount];
+        /*
+         计算item之间的间隔
+         */
+        int itemHorizontalDistance = 0;
+        int itemVerticalDistance = 0;
         View child = recycler.getViewForPosition(getItemCount() - 1);
         measureChildWithMargins(child, 0, 0);
-        int lastChildHeight = getDecoratedMeasuredHeight(child);
         int lastChildWidth = getDecoratedMeasuredWidth(child);
-        int itemVerticalDistance = (getVerticalSpace() - shadowPadding * lp.maxCount - lastChildHeight - lp.paddingTop - lp.paddingBottom) / (lp.maxCount - 1);
-        int itemHorizontalDistance = (getHorizontalSpace() - shadowPadding * lp.maxCount - lp.paddingLeft - lp.paddingRight - lastChildWidth) / (lp.maxCount - 1);
-        int leftX = getPaddingLeft() + shadowPadding * (lp.maxCount - 1) + lp.paddingLeft;
-        int bottomY = getHeight() - getPaddingBottom() - lp.paddingBottom - shadowPadding * (lp.maxCount - 1);
+        int lastChildHeight = getDecoratedMeasuredHeight(child);
+        if ((lp.direction & Direction.LEFT) != 0 || (lp.direction & Direction.RIGHT) != 0) {
+            itemHorizontalDistance = (getHorizontalSpace() - childStartShadowPadding() - childEndPadding() - lp.paddingLeft - lp.paddingRight - lastChildWidth) / (lp.maxCount - 1);
+        }
+
+        if ((lp.direction & Direction.UP) != 0 || (lp.direction & Direction.DOWN) != 0) {
+            itemVerticalDistance = (getVerticalSpace() - childStartShadowPadding() - childEndPadding() - lp.paddingTop - lp.paddingBottom - lastChildHeight) / (lp.maxCount - 1);
+        }
+
         for (int i = lp.maxCount - 1; i >= 0; i--) {
-            int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
-            int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
-            pointFS[i] = new PointF(leftX + dx, bottomY - lastChildHeight - dy);
+            float x = (getWidth() - lastChildWidth) * 1f / 2;
+            if ((lp.direction & Direction.LEFT) != 0) {
+                int left = getPaddingLeft() + lp.paddingLeft + childEndPadding();
+                int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
+                x = left + dx;
+            } else if ((lp.direction & Direction.RIGHT) != 0) {
+                int right = getWidth() - lp.paddingRight - childEndPadding();
+                int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
+                x = right - lastChildWidth - dx;
+            }
+            float y = (getHeight() - lastChildHeight) * 1f / 2;
+            if ((lp.direction & Direction.UP) != 0) {
+                int top = getPaddingTop() + lp.paddingTop + childEndPadding();
+                int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
+                y = top + dy;
+            } else if ((lp.direction & Direction.DOWN) != 0) {
+                int bottom = getHeight() - lp.paddingBottom - childEndPadding();
+                int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
+                y = bottom - lastChildHeight - dy;
+            }
+            pointFS[i] = new PointF(x, y);
         }
     }
-    
+
+    /**
+     * 单层所需要的阴影位置大小
+     */
+    private int singleShadowPadding() {
+        return lp.showShadow ? lp.shadowPadding : 0;
+    }
+
+    /**
+     * 最后一个/最顶层所需要的阴影位置大小
+     */
+    private int childEndPadding() {
+        return singleShadowPadding() * (lp.maxCount - 1);
+    }
+
+    /**
+     * 第一个/最下层所需要的阴影位置大小
+     */
+    private int childStartShadowPadding() {
+        return singleShadowPadding();
+    }
+
     /**
      * 可以横移，因为底部是可以横滑删除的
      */
@@ -279,7 +321,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         static final int DEFAULT_MAX_COUNT = 3;
         static final int DEFAULT_ELEVATION = 3;
         static final int DEFAULT_SHADOW_PADDING = DEFAULT_ELEVATION * 2;
-        static final int DEFAULT_ANGLE = Direction.LAYOUT_DIRECTION_TOP_RIGHT;
+        static final int DEFAULT_ANGLE = Direction.DOWN_LEFT;
         //padding
         int paddingLeft = 0;
         int paddingRight = 0;
@@ -297,24 +339,25 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     }
 
     @IntDef({
-            Direction.LAYOUT_DIRECTION_RIGHT,
-            Direction.LAYOUT_DIRECTION_TOP_RIGHT,
-            Direction.LAYOUT_DIRECTION_UP,
-            Direction.LAYOUT_DIRECTION_TOP_LEFT,
-            Direction.LAYOUT_DIRECTION_LEFT,
-            Direction.LAYOUT_DIRECTION_DOWN_LEFT,
-            Direction.LAYOUT_DIRECTION_DOWN,
-            Direction.LAYOUT_DIRECTION_DOWN_RIGHT,
+            Direction.RIGHT,
+            Direction.UP_RIGHT,
+            Direction.UP,
+            Direction.UP_LEFT,
+            Direction.LEFT,
+            Direction.DOWN_LEFT,
+            Direction.DOWN,
+            Direction.DOWN_RIGHT,
     })
     public @interface Direction {
-        int LAYOUT_DIRECTION_RIGHT = 0;
-        int LAYOUT_DIRECTION_TOP_RIGHT = 45;
-        int LAYOUT_DIRECTION_UP = 90;
-        int LAYOUT_DIRECTION_TOP_LEFT = 135;
-        int LAYOUT_DIRECTION_LEFT = 180;
-        int LAYOUT_DIRECTION_DOWN_LEFT = 225;
-        int LAYOUT_DIRECTION_DOWN = 270;
-        int LAYOUT_DIRECTION_DOWN_RIGHT = 315;
+        int UP = 1;
+        int DOWN = 1 << 1;
+        int LEFT = 1 << 2;
+        int RIGHT = 1 << 3;
+
+        int UP_RIGHT = UP | RIGHT;
+        int UP_LEFT = UP | LEFT;
+        int DOWN_LEFT = DOWN | LEFT;
+        int DOWN_RIGHT = DOWN | RIGHT;
     }
 
     public static class Builder {

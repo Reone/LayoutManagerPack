@@ -77,7 +77,7 @@ public class NotifyCardActivity extends AppCompatActivity {
                     .maxCount(3)
                     .elevation(5)
                     .debug(true)
-                    .direction(NotifyCardLayoutManager.Direction.LAYOUT_DIRECTION_DOWN_RIGHT)
+                    .direction(NotifyCardLayoutManager.Direction.UP_RIGHT)
                     .padding(100, 10, 100, 10)
                     .onItemRemoveListener(position -> {
                         data.remove(position);
