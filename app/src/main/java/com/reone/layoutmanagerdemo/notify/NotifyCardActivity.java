@@ -1,5 +1,6 @@
 package com.reone.layoutmanagerdemo.notify;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -38,7 +39,6 @@ public class NotifyCardActivity extends AppCompatActivity {
     @Nullable
     private List<ItemBean> data;
 
-    int directionIndex = 0;
     private int[] direction = {
             NotifyCardLayoutManager.Direction.UP,
             NotifyCardLayoutManager.Direction.UP_RIGHT,
@@ -49,6 +49,7 @@ public class NotifyCardActivity extends AppCompatActivity {
             NotifyCardLayoutManager.Direction.LEFT,
             NotifyCardLayoutManager.Direction.UP_LEFT,
     };
+    private int directionIndex = direction.length - 1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,7 +68,7 @@ public class NotifyCardActivity extends AppCompatActivity {
     private void handleData() {
         if (data == null) {
             data = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 data.add(FakerData.createItemBean());
             }
             notifyCardAdapter = new NotifyCardAdapter(this, data);
@@ -95,13 +96,17 @@ public class NotifyCardActivity extends AppCompatActivity {
         notifyCardLayoutManager1 = new NotifyCardLayoutManager();
         notifyCardLayoutManager1.setMaxCount(4);
         notifyCardLayoutManager1.setShowShadow(true);
-        notifyCardLayoutManager1.setElevation(1);
+        if (Build.VERSION.SDK_INT >= 21) {
+            notifyCardLayoutManager1.setElevation(3);
+        }
         notifyCardLayoutManager1.setPadding(100, 10, 100, 10);
         notifyCardLayoutManager1.onItemRemoveListener(onItemRemoveListener);
 
         notifyCardLayoutManager2 = new NotifyCardLayoutManager();
-        notifyCardLayoutManager2.setMaxCount(3);
-        notifyCardLayoutManager2.setElevation(5);
+        notifyCardLayoutManager2.setMaxCount(9);
+        if (Build.VERSION.SDK_INT >= 21) {
+            notifyCardLayoutManager2.setElevation(2);
+        }
         notifyCardLayoutManager2.setDebug(true);
         notifyCardLayoutManager2.setDirection(direction[directionIndex]);
         notifyCardLayoutManager2.onItemRemoveListener(onItemRemoveListener);
@@ -117,13 +122,15 @@ public class NotifyCardActivity extends AppCompatActivity {
                         notifyCardAdapter2.notifyItemInserted(data.size() - 1);
                         break;
                     case "remove":
-                        int lastIndex = data.size() - 1;
-                        data.remove(lastIndex);
-                        notifyCardAdapter.notifyItemRemoved(lastIndex);
-                        notifyCardAdapter2.notifyItemRemoved(lastIndex);
+                        if (data.size() > 0) {
+                            int lastIndex = data.size() - 1;
+                            data.remove(lastIndex);
+                            notifyCardAdapter.notifyItemRemoved(lastIndex);
+                            notifyCardAdapter2.notifyItemRemoved(lastIndex);
+                        }
                         break;
                     case "turn direction":
-                        notifyCardLayoutManager2.setDirection(direction[directionIndex++ % direction.length]);
+                        notifyCardLayoutManager2.setDirection(direction[++directionIndex % direction.length]);
                 }
             }
         });
