@@ -244,7 +244,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
                 int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
                 x = left + dx;
             } else if ((lp.direction & Direction.RIGHT) != 0) {
-                int right = getWidth() - lp.paddingRight - childEndPadding();
+                int right = getWidth() - getPaddingRight() - lp.paddingRight - childEndPadding();
                 int dx = (lp.maxCount - i - 1) * itemHorizontalDistance;
                 x = right - lastChildWidth - dx;
             }
@@ -254,7 +254,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
                 int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
                 y = top + dy;
             } else if ((lp.direction & Direction.DOWN) != 0) {
-                int bottom = getHeight() - lp.paddingBottom - childEndPadding();
+                int bottom = getHeight() - getPaddingBottom() - lp.paddingBottom - childEndPadding();
                 int dy = (lp.maxCount - i - 1) * itemVerticalDistance;
                 y = bottom - lastChildHeight - dy;
             }

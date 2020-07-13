@@ -11,14 +11,15 @@
         android:supportsRtl="true"
         android:name=".App"
         android:theme="@style/AppTheme">
-        <activity android:name=".DemoListActivity">
+        <activity android:name=".activity.DemoListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".notify.NotifyCardActivity" />
+        <activity android:name=".activity.NotifyCardActivity" />
+        <activity android:name=".activity.LevelActivity" />
     </application>
 
 </manifest>

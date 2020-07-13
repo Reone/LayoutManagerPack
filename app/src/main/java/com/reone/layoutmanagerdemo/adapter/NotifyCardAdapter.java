@@ -1,4 +1,4 @@
-package com.reone.layoutmanagerdemo.notify;
+package com.reone.layoutmanagerdemo.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;

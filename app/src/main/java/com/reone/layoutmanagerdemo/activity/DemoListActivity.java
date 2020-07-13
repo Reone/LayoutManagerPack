@@ -1,4 +1,4 @@
-package com.reone.layoutmanagerdemo;
+package com.reone.layoutmanagerdemo.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.reone.layoutmanagerdemo.notify.NotifyCardActivity;
+import com.reone.layoutmanagerdemo.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,6 +24,7 @@ public class DemoListActivity extends AppCompatActivity {
     RecyclerView mRecyclerView;
     private DemoItem[] demoList = new DemoItem[]{
             new DemoItem("卡片式通知", NotifyCardActivity.class),
+            new DemoItem("层级式", LevelActivity.class),
     };
 
     @Override

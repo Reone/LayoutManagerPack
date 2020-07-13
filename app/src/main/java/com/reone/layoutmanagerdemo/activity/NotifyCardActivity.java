@@ -1,4 +1,4 @@
-package com.reone.layoutmanagerdemo.notify;
+package com.reone.layoutmanagerdemo.activity;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.reone.layoutmanagerdemo.R;
+import com.reone.layoutmanagerdemo.adapter.NotifyCardAdapter;
+import com.reone.layoutmanagerdemo.adapter.NotifyCardAdapter2;
 import com.reone.layoutmanagerdemo.bean.ItemBean;
 import com.reone.layoutmanagerdemo.utils.FakerData;
 import com.reone.layoutmanagerdemo.utils.ToastUtils;
