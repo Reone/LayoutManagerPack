@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 public class LevelLayoutManager extends RecyclerView.LayoutManager {
     private PointF[] pointFS;//itemCount > maxCount时，每一个item应该处于的位置，从上到下的顺序存放至此
     private LayoutParams lp;//构建参数
+    private View backgroundItem;//最底层用来优化效果的item
 
     public LevelLayoutManager() {
         lp = new LayoutParams();
@@ -60,22 +61,38 @@ public class LevelLayoutManager extends RecyclerView.LayoutManager {
             removeAndRecycleAllViews(recycler);
             return;
         }
+        if (backgroundItem != null) {
+            //降低最底层缓存等级，使其不执行动画
+            removeAndRecycleView(backgroundItem, recycler);
+            backgroundItem = null;
+        }
         detachAndScrapAttachedViews(recycler);
         int needLayoutCount = Math.min(getItemCount(), lp.maxCount);
         int firstIndex = pointFS.length - needLayoutCount;
         int lastIndex = pointFS.length - 1;
 
-        int lastTempIndex = getItemCount() - pointFS.length - 1;
+        int lastTempIndex = pointToChildIndex(-2);
+        if (firstIndex == 0 && lastTempIndex >= 0) {
+            backgroundItem = recycler.getViewForPosition(lastTempIndex);
+            layoutItemWithPointF(backgroundItem, 0);
+        }
+        lastTempIndex = pointToChildIndex(-1);
         if (firstIndex == 0 && lastTempIndex >= 0) {
             View item = recycler.getViewForPosition(lastTempIndex);
             layoutItemWithPointF(item, 0);
         }
         for (int i = firstIndex; i <= lastIndex; i++) {
-            int itemIndex = getItemCount() - (pointFS.length - i);
+            int itemIndex = pointToChildIndex(i);
             View item = recycler.getViewForPosition(itemIndex);
-            addView(item);
             layoutItemWithPointF(item, i);
         }
+    }
+
+    /**
+     * pointFS列表中的位置转换成data列表中的下标
+     */
+    private int pointToChildIndex(int position) {
+        return getItemCount() - (pointFS.length - position);
     }
 
     private void layoutItemWithPointF(View item, int pointIndex) {

@@ -15,7 +15,6 @@ import android.view.animation.DecelerateInterpolator;
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.reflect.Field;
@@ -30,6 +29,7 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
     private ValueAnimator lastItemMoveAnimator;
     private RecyclerView recyclerView;
     private LayoutParams lp;//构建参数
+    private View backgroundItem;//最底层用来优化效果的item
 
     public NotifyCardLayoutManager() {
         lp = new LayoutParams();
@@ -128,7 +128,6 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
             field.setAccessible(true);
             recyclerView = (RecyclerView) field.get(this);
             LOG("findRecyclerView " + recyclerView);
-            recyclerView.setItemAnimator(new NotifyDefaultItemAnimator());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -181,22 +180,38 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
             removeAndRecycleAllViews(recycler);
             return;
         }
+        if (backgroundItem != null) {
+            //降低最底层缓存等级，使其不执行动画
+            removeAndRecycleView(backgroundItem, recycler);
+            backgroundItem = null;
+        }
         detachAndScrapAttachedViews(recycler);
         int needLayoutCount = Math.min(getItemCount(), lp.maxCount);
         int firstIndex = pointFS.length - needLayoutCount;
         int lastIndex = pointFS.length - 1;
 
-        int lastTempIndex = getItemCount() - pointFS.length - 1;
+        int lastTempIndex = pointToChildIndex(-2);
+        if (firstIndex == 0 && lastTempIndex >= 0) {
+            backgroundItem = recycler.getViewForPosition(lastTempIndex);
+            layoutItemWithPointF(backgroundItem, 0);
+        }
+        lastTempIndex = pointToChildIndex(-1);
         if (firstIndex == 0 && lastTempIndex >= 0) {
             View item = recycler.getViewForPosition(lastTempIndex);
             layoutItemWithPointF(item, 0);
         }
         for (int i = firstIndex; i <= lastIndex; i++) {
-            int itemIndex = getItemCount() - (pointFS.length - i);
+            int itemIndex = pointToChildIndex(i);
             View item = recycler.getViewForPosition(itemIndex);
-            addView(item);
             layoutItemWithPointF(item, i);
         }
+    }
+
+    /**
+     * pointFS列表中的位置转换成data列表中的下标
+     */
+    private int pointToChildIndex(int position) {
+        return getItemCount() - (pointFS.length - position);
     }
 
     private void layoutItemWithPointF(View item, int pointIndex) {
@@ -390,14 +405,6 @@ public class NotifyCardLayoutManager extends RecyclerView.LayoutManager {
         int UP_LEFT = UP | LEFT;
         int DOWN_LEFT = DOWN | LEFT;
         int DOWN_RIGHT = DOWN | RIGHT;
-    }
-
-    private static class NotifyDefaultItemAnimator extends DefaultItemAnimator {
-        @Override
-        public long getRemoveDuration() {
-            //不需要remove的效果，但是要不影响其他动画的进行
-            return 0;
-        }
     }
 
     public static class LayoutParams {
