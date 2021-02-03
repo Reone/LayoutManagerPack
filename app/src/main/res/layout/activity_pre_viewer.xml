@@ -7,8 +7,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_mid"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical" />
+        android:layout_height="400dp" />
 
     <com.reone.layoutmanagerdemo.view.BtnGroupView
         android:id="@+id/btn_group_view"
