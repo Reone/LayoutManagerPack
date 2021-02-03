@@ -25,6 +25,7 @@ public class DemoListActivity extends AppCompatActivity {
     private DemoItem[] demoList = new DemoItem[]{
             new DemoItem("卡片式通知", NotifyCardActivity.class),
             new DemoItem("层级式", LevelActivity.class),
+            new DemoItem("预览式", PreViewerActivity.class),
     };
 
     @Override
